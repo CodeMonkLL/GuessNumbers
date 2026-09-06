@@ -22,7 +22,7 @@ def countAttempts(gameSessionId):
     )
 
 def saveAttempt(gameSession, enteredNumber):
-    """Records one guess and returns it. Does not commit."""
+    """Records one guess, saves it directly to the database and returns it."""
     gameSession.attemptCount += 1
 
     attempt = Attempt(
@@ -31,4 +31,12 @@ def saveAttempt(gameSession, enteredNumber):
         enteredNumber=enteredNumber,
     )
     db.session.add(attempt)
+    db.session.commit()
     return attempt
+
+
+def getAttemptsByGameSessionId(gameSessionId):
+    return db.session.scalars(
+        select(Attempt)
+        .where(Attempt.gameSessionId == gameSessionId)
+    ).all()

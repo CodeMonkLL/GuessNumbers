@@ -20,3 +20,8 @@ def createUser(username):
 def findOrCreate(username):
     """Returns the existing user or creates one. Does not commit."""
     return findByUsername(username) or createUser(username)
+
+
+def findById(userId):
+    """Returns the user via Id or None."""
+    return db.session.scalar(select(User).where(User.id == userId))

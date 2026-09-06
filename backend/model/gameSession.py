@@ -23,7 +23,7 @@ class GameSession(db.Model):
 
     userId: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
 
-    #   None → Spiel läuft noch
+
     #   True → gewonnen
-    #   False → verloren
-    isWinner: Mapped[bool | None]
+    #   False → verloren,läuft noch
+    isWinner: Mapped[bool] = mapped_column(default=False, server_default="False")

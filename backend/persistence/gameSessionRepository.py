@@ -21,7 +21,7 @@ def findRunningSession(userId):
     """The open session of that user, or None."""
     return db.session.scalar(
         select(GameSession)
-        .where(GameSession.userId == userId, GameSession.isWinner.is_(None))
+        .where(GameSession.userId == userId, GameSession.isWinner.is_(False))
         .order_by(GameSession.id.desc())
     )
 
@@ -36,3 +36,11 @@ def loadSessionsOfUser(userId):
 def markFinished(gameSession, isWinner):
     """Ends a session. Does not commit."""
     gameSession.isWinner = isWinner
+
+
+def getSessionByLessTrys() -> list[GameSession]:
+    return db.session.scalars(
+        select(GameSession)
+        .order_by(GameSession.attemptCount.asc)
+        .limit(10)
+    ).all()
