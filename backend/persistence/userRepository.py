@@ -11,10 +11,10 @@ def findByUsername(username):
     return db.session.scalar(select(User).where(User.username == username))
 
 def createUser(username):
-    """Creates a user and returns the object. Does not commit."""
+    """Creates a user and returns the object. Commits the transaction."""
     user = User(username=username)
     db.session.add(user)
-    db.session.flush()
+    db.session.commit()
     return user
 
 def findOrCreate(username):

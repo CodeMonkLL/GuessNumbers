@@ -63,5 +63,5 @@ def register_user():
 
     if isinstance(result, user.User):
         return jsonify({"message": "User created successfully"}), 201
-        
+
     return jsonify({"error": "Internal server error"}), 500

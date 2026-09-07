@@ -41,6 +41,6 @@ def markFinished(gameSession, isWinner):
 def getSessionByLessTrys() -> list[GameSession]:
     return db.session.scalars(
         select(GameSession)
-        .order_by(GameSession.attemptCount.asc)
+        .order_by(GameSession.attemptCount.asc())
         .limit(10)
     ).all()

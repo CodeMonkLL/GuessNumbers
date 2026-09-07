@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: GuessNumbers App (lokal, DB im Container)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/app.py",
+      "cwd": "${workspaceFolder}/backend",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "3306",
+        "DB_NAME": "number_guessing",
+        "DB_USER": "user",
+        "DB_PASSWORD": "guess-my-pw",
+        "SECRET_KEY": "localhost"
+      }
+    }
+  ]
+}
