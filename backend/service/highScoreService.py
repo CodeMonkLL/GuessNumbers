@@ -1,20 +1,21 @@
 import persistence.gameSessionRepository as gameSessionRepository
 import persistence.userRepository as userRepository
-import model.highScoreResponse as highScoreResponse
+import backend.model.DTO.highScoreResponse as highScoreResponse
 
 def getHighScore():
     gameSessions = gameSessionRepository.getSessionByLessTrys()
     highScoreResponses = []
 
-    for index,gameSession in enumerate(gameSessions, start=1):
+    for index, gameSession in enumerate(gameSessions, start=1):
         user = userRepository.findById(gameSession.userId)
-        username = user.username
+        
+        username = user.username if user else "Unknown"
         trys = gameSession.attemptCount
-        newHighScore = highScoreResponse(
-            place=index,
-            attempts=trys,
-            userName=username
-        )
-        highScoreResponses.append(newHighScore)
+
+        highScoreResponses.append({
+            "place": index,
+            "attempts": trys,
+            "userName": username
+        })
 
     return highScoreResponses

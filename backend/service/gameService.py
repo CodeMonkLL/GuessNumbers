@@ -1,51 +1,42 @@
-"""Game rules"""
+"""Game Service with Functions for playing the Game"""
 import persistence.gameSessionRepository as gameSessionRepository
 import persistence.attemptRepository as attemptRepository
-import math
+import random
 import logging
-from backend.model.DTO.errors import SessionMismatchError,SessionNotFoundError
+from backend.model.DTO.errors import SessionMismatchError,SessionNotFoundError,SessionAlreadyFinishedError
+from backend.model.DTO.startRoundRequestDto import StartRoundRequestDto
+from backend.model.DTO.startRoundResponseDto import StartRoundResponseDto
+from backend.model.DTO.playRoundRequestDto import PlayRoundRequestDto
+from backend.model.DTO.playRoundResponseDto import PlayRoundResponseDto
 logger = logging.getLogger(__name__)
-from backend.model.DTO.attemptRequestDto import attemptRequestDto
-from backend.model.DTO.attemptResponseDto import attemptResponseDto
 
-def createGameSession(userId):
-    randomNumber = math.random
-    newgamesession = gameSessionRepository.createSession(userId,randomNumber);
-    logger.info(f"Creating new GameSession for User{userId}")
-    return newgamesession
-
-
-def returnActualSession(userId):
-    runningSession = gameSessionRepository.findRunningSession(userId= userId)
-
-    if runningSession is None:
-        logger.error(f"No running Gamesession found for User{userId}. Creating ")
-        errorMessage = "User has no running Sessions, creating new gameSession"
-        runningSession = createGameSession()
-
-    return runningSession
-        
-def playRound(attemptRequest:attemptRequestDto):
-    userId = attemptRequest.userId
+def playRound(playRoundRequest:PlayRoundRequestDto):
+    """Function for playing one round"""
+    userId = playRoundRequest.userId
 
     actualSession = returnActualSession(userId)
-    if(actualSession is None):
-        logger.error(f"Error while getting actual Session for {userId}, does not exsist ")
-        return SessionNotFoundError
+    if actualSession is None:
+        logger.error(f"Error while getting actual Session for {userId}")
+        raise SessionNotFoundError(f"No active session found for user {userId}")
 
-    if(actualSession.id != attemptRequest.sessionId):
-        logger.error(f"ActualSession for UserId{userId} is not the same as commited gameSessionId. ")
-        return SessionMismatchError
+    if actualSession.id != playRoundRequest.sessionId:
+        logger.error(f"Session mismatch for UserId {userId}")
+        raise SessionMismatchError("Session ID does not match the active session")
 
-    response = attemptResponseDto()
-    response.userId = attemptRequest.userId
-    response.sessionId = actualSession.id
+    if actualSession.isWinner:
+        logger.error("Session already finished")
+        raise SessionAlreadyFinishedError("Game session has already been completed")
 
-    attemptNumber = attemptRequest.attemptNumber
+    attemptNumber = playRoundRequest.attemptNumber
     winningNumber = actualSession.numberComputer
 
+    response = PlayRoundResponseDto()
+    response.userId = playRoundRequest.userId
+    response.sessionId = actualSession.id
     response.responseMessage = ReturnAnswerMessage(attemptNumber,winningNumber)
+
     attemptRepository.saveAttempt(actualSession,attemptNumber)
+
     comparision = CompareNumberToWinningNumber(attemptNumber,winningNumber)
     if(comparision == True):
             logger.info(f"UserId{userId} guessed the right Number, changing status session.iswinner")
@@ -59,7 +50,26 @@ def playRound(attemptRequest:attemptRequestDto):
     return response
          
 
+def startRoundService(requestDto: StartRoundRequestDto) -> StartRoundResponseDto:
+    # returnActualSession liefert die aktive Session oder erstellt eine neue
+    session = returnActualSession(requestDto.userId)
     
+    response = StartRoundResponseDto(
+        userId=requestDto.userId,
+        sessionId=session.id,
+        message="Session active and ready"
+    )
+    return response
+
+
+def returnActualSession(userId):
+    runningSession = gameSessionRepository.findRunningSession(userId= userId)
+
+    if runningSession is None:
+        logger.warning(f"No running Gamesession found for User{userId}. Creating new Session")
+        runningSession = createGameSession(userId)
+
+    return runningSession    
 
 def ReturnAnswerMessage(number:int, winningNumber:int):
     returnMessage = ""
@@ -77,3 +87,9 @@ def CompareNumberToWinningNumber(number: int, winningNumber: int):
         return True
     else:
         return False
+
+def createGameSession(userId):
+    randomNumber = random.randint(1, 100)
+    newgamesession = gameSessionRepository.createSession(userId,randomNumber);
+    logger.info(f"Creating new GameSession for User{userId}")
+    return newgamesession
