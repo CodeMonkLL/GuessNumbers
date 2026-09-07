@@ -17,7 +17,7 @@ def createSession(userId, numberComputer):
     db.session.flush()
     return gameSession
 
-def findRunningSession(userId):
+def findRunningSession(userId:int):
     """The open session of that user, or None."""
     return db.session.scalar(
         select(GameSession)

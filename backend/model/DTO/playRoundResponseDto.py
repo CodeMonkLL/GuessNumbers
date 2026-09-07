@@ -3,7 +3,7 @@ from typing import Optional
 
 @dataclass
 class PlayRoundResponseDto():
-    userId:str
+    userId:int
     sessionId: int
     attemptNumber: int
     isAttemptSuccessful: bool

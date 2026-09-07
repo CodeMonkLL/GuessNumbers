@@ -30,9 +30,9 @@ def startRound():
             - userId
           properties:
             userId:
-              type: string
+              type: int
               description: Die eindeutige ID des Benutzers
-              example: "1"
+              example: 1
     responses:
       200:
         description: Runde wurde erfolgreich gestartet
@@ -40,8 +40,8 @@ def startRound():
           type: object
           properties:
             userId:
-              type: string
-              example: "1"
+              type: int
+              example: 1
             sessionId:
               type: integer
               description: Die ID der neu erstellten Spiel-Session
@@ -114,17 +114,17 @@ def playRound():
           required:
             - userId
             - sessionId
-            - atemptNumber
+            - attemptNumber
           properties:
             userId:
-              type: string
+              type: integer
               description: Die eindeutige ID des Benutzers
-              example: "1"
+              example: 1
             sessionId:
               type: integer
               description: Die ID der laufenden Spiel-Session
               example: 42
-            atemptNumber:
+            attemptNumber:
               type: integer
               description: Die geratene Zahl für diesen Versuch
               example: 50
@@ -135,8 +135,8 @@ def playRound():
           type: object
           properties:
             userId:
-              type: string
-              example: "1"
+              type: int
+              example: 1
             sessionId:
               type: integer
               example: 42
@@ -183,7 +183,7 @@ def playRound():
     data = request.get_json() or {}
     user_id = data.get("userId")
     sessionId = data.get("sessionId")
-    attemptNumber = data.get("atemptNumber")
+    attemptNumber = data.get("attemptNumber", data.get("atemptNumber"))
 
     request_dto = PlayRoundRequestDto(userId=user_id, sessionId= sessionId,attemptNumber= attemptNumber)
     try:

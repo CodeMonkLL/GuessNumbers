@@ -2,6 +2,6 @@ from dataclasses import dataclass
 
 @dataclass
 class StartRoundResponseDto:
-    userId: str
+    userId: int
     sessionId: int
     message: str

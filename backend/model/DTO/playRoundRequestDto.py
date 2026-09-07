@@ -2,6 +2,6 @@ from dataclasses import asdict, dataclass
 
 @dataclass
 class PlayRoundRequestDto():
-    userId:str
+    userId:int
     sessionId: int
     attemptNumber: int

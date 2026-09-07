@@ -8,18 +8,19 @@ from model.DTO.startRoundRequestDto import StartRoundRequestDto
 from model.DTO.startRoundResponseDto import StartRoundResponseDto
 from model.DTO.playRoundRequestDto import PlayRoundRequestDto
 from model.DTO.playRoundResponseDto import PlayRoundResponseDto
+from persistence.database import db
 logger = logging.getLogger(__name__)
 
 def playRound(playRoundRequest:PlayRoundRequestDto):
     """Function for playing one round"""
     userId = playRoundRequest.userId
 
-    actualSession = returnActualSession(userId)
+    actualSession = gameSessionRepository.loadSession(playRoundRequest.sessionId)
     if actualSession is None:
-        logger.error(f"Error while getting actual Session for {userId}")
-        raise SessionNotFoundError(f"No active session found for user {userId}")
+        logger.error(f"Session {playRoundRequest.sessionId} was not found")
+        raise SessionNotFoundError(f"Session {playRoundRequest.sessionId} not found")
 
-    if actualSession.id != playRoundRequest.sessionId:
+    if actualSession.userId != userId:
         logger.error(f"Session mismatch for UserId {userId}")
         raise SessionMismatchError("Session ID does not match the active session")
 
@@ -30,10 +31,13 @@ def playRound(playRoundRequest:PlayRoundRequestDto):
     attemptNumber = playRoundRequest.attemptNumber
     winningNumber = actualSession.numberComputer
 
-    response = PlayRoundResponseDto()
-    response.userId = playRoundRequest.userId
-    response.sessionId = actualSession.id
-    response.responseMessage = ReturnAnswerMessage(attemptNumber,winningNumber)
+    response = PlayRoundResponseDto(
+        userId=playRoundRequest.userId,
+        sessionId=actualSession.id,
+        attemptNumber=attemptNumber,
+        isAttemptSuccessful=False,
+        responseMessage=ReturnAnswerMessage(attemptNumber, winningNumber),
+    )
 
     attemptRepository.saveAttempt(actualSession,attemptNumber)
 
@@ -41,6 +45,7 @@ def playRound(playRoundRequest:PlayRoundRequestDto):
     if(comparision == True):
             logger.info(f"UserId{userId} guessed the right Number, changing status session.iswinner")
             gameSessionRepository.markFinished(gameSession= actualSession,isWinner=True)
+            db.session.commit()
             response.isAttemptSuccessful = True
             response.winningNumber = winningNumber
     else:
@@ -53,6 +58,7 @@ def playRound(playRoundRequest:PlayRoundRequestDto):
 def startRoundService(requestDto: StartRoundRequestDto) -> StartRoundResponseDto:
     # returnActualSession liefert die aktive Session oder erstellt eine neue
     session = returnActualSession(requestDto.userId)
+    db.session.commit()
     
     response = StartRoundResponseDto(
         userId=requestDto.userId,
@@ -62,7 +68,7 @@ def startRoundService(requestDto: StartRoundRequestDto) -> StartRoundResponseDto
     return response
 
 
-def returnActualSession(userId):
+def returnActualSession(userId:int):
     runningSession = gameSessionRepository.findRunningSession(userId= userId)
 
     if runningSession is None:
