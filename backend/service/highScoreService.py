@@ -1,6 +1,6 @@
 import persistence.gameSessionRepository as gameSessionRepository
 import persistence.userRepository as userRepository
-import backend.model.DTO.highScoreResponse as highScoreResponse
+import model.DTO.highScoreResponse as highScoreResponse
 
 def getHighScore():
     gameSessions = gameSessionRepository.getSessionByLessTrys()

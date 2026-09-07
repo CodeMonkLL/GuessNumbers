@@ -3,11 +3,11 @@ import persistence.gameSessionRepository as gameSessionRepository
 import persistence.attemptRepository as attemptRepository
 import random
 import logging
-from backend.model.DTO.errors import SessionMismatchError,SessionNotFoundError,SessionAlreadyFinishedError
-from backend.model.DTO.startRoundRequestDto import StartRoundRequestDto
-from backend.model.DTO.startRoundResponseDto import StartRoundResponseDto
-from backend.model.DTO.playRoundRequestDto import PlayRoundRequestDto
-from backend.model.DTO.playRoundResponseDto import PlayRoundResponseDto
+from model.DTO.errors import SessionMismatchError,SessionNotFoundError,SessionAlreadyFinishedError
+from model.DTO.startRoundRequestDto import StartRoundRequestDto
+from model.DTO.startRoundResponseDto import StartRoundResponseDto
+from model.DTO.playRoundRequestDto import PlayRoundRequestDto
+from model.DTO.playRoundResponseDto import PlayRoundResponseDto
 logger = logging.getLogger(__name__)
 
 def playRound(playRoundRequest:PlayRoundRequestDto):

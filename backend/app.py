@@ -1,10 +1,12 @@
 from pathlib import Path
 
 from flask import Flask
+from flasgger import Swagger
 
 import config
-from controller.apiController import apiBp
-from controller.gameController import gameBp
+from controller.highScoreController import highscoreBp
+from controller.gameplayController import gameBp
+from controller.userController import userBp
 from persistence.database import db
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
@@ -18,11 +20,11 @@ def createApp():
     app.secret_key = config.SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URI
 
+    Swagger(app)
     db.init_app(app)
-
     app.register_blueprint(gameBp)
-    app.register_blueprint(apiBp)
-
+    app.register_blueprint(highscoreBp)
+    app.register_blueprint(userBp)
     return app
 
 
