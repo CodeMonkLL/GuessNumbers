@@ -56,7 +56,7 @@ def playRound(playRoundRequest:PlayRoundRequestDto):
          
 
 def startRoundService(requestDto: StartRoundRequestDto) -> StartRoundResponseDto:
-    # returnActualSession liefert die aktive Session oder erstellt eine neue
+    """Function returns active session or returns new active session"""
     session = returnActualSession(requestDto.userId)
     db.session.commit()
     
@@ -78,6 +78,7 @@ def returnActualSession(userId:int):
     return runningSession    
 
 def ReturnAnswerMessage(number:int, winningNumber:int):
+    """Returns answer for User"""
     returnMessage = ""
     if(number > winningNumber):
         returnMessage = "Number is to high"
@@ -89,6 +90,7 @@ def ReturnAnswerMessage(number:int, winningNumber:int):
     return returnMessage
 
 def CompareNumberToWinningNumber(number: int, winningNumber: int):
+    """Compares Number to Winning Number"""
     if(number == winningNumber):
         return True
     else:
