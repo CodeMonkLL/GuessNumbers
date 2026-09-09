@@ -101,3 +101,11 @@ def createGameSession(userId):
     newgamesession = gameSessionRepository.createSession(userId,randomNumber);
     logger.info(f"Creating new GameSession for User{userId}")
     return newgamesession
+
+def getSessionStatus(sessionId:int):
+    gameSession = gameSessionRepository.loadSession(sessionId= sessionId)
+    if (gameSession is None):
+        logger.warning(f"Session does not exsist")
+        return SessionNotFoundError
+
+    return gameSession
