@@ -3,6 +3,8 @@ import service.gameService as gameService
 from flask import Blueprint, jsonify, request
 from model.DTO.startRoundRequestDto import StartRoundRequestDto
 from model.DTO.playRoundRequestDto import PlayRoundRequestDto
+from model.DTO.sessionStatusRequestDto import SessionStatusRequesteDto
+from model.DTO.sessionStatusResponseDto import SessionStatusResponseDto
 from model.DTO.errors import (
     SessionNotFoundError,
     SessionMismatchError,
@@ -196,3 +198,80 @@ def playRound():
         return jsonify({"error": str(e)}), 404
     except Exception as e:
         return jsonify({"error": "Internal server error"}), 500
+
+
+@gameBp.post("/sessionStatus")
+def getSessionStatus(gameSessionId:int):
+    """
+    Liefert den aktuellen Status einer Spiel-Session
+    ---
+    tags:
+      - Gameplay
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Die ID der Spiel-Session, deren Status abgefragt wird
+        schema:
+          type: object
+          required:
+            - gameSessionId
+          properties:
+            gameSessionId:
+              type: integer
+              description: Die eindeutige ID der Spiel-Session
+              example: 42
+    responses:
+      200:
+        description: Status der Spiel-Session wurde erfolgreich geladen
+        schema:
+          type: object
+          required:
+            - sessionId
+            - sessionStatus
+          properties:
+            sessionId:
+              type: integer
+              description: Die eindeutige ID der Spiel-Session
+              example: 42
+            sessionStatus:
+              type: string
+              description: Status der Spiel-Session
+              example: active
+      404:
+        description: Die Spiel-Session wurde nicht gefunden
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Session not found
+      500:
+        description: Interner Serverfehler
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Internal server error
+    """
+    data = request.get_json() or {}
+    gameSession = data.get("gameSessionId")
+  
+    try:
+        game_session = gameService.getSessionStatus(gameSession)
+        if game_session == SessionNotFoundError:
+          return jsonify({"error": "Session not found"}), 404
+
+        response_dto = SessionStatusResponseDto(
+          sessionId=game_session.id,
+          sessionStatus="won" if game_session.isWinner else "active"
+        )
+        return jsonify(response_dto.__dict__), 200
+    except SessionNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        return jsonify({"error": "Internal server error"}), 500
+    
