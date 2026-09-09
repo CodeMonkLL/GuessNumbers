@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from flask import Flask
 from flasgger import Swagger
 
@@ -9,14 +7,8 @@ from controller.gameplayController import gameBp
 from controller.userController import userBp
 from persistence.database import db
 
-FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
-
 def createApp():
-    app = Flask(
-        __name__,
-        template_folder=str(FRONTEND / "templates"),
-        static_folder=str(FRONTEND / "static"),
-    )
+    app = Flask(__name__)
     app.secret_key = config.SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URI
 

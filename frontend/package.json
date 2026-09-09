@@ -1,0 +1,21 @@
+{
+  "name": "frontend",
+  "private": true,
+  "scripts": {
+    "start": "nest start",
+    "build": "nest build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11",
+    "@nestjs/core": "^11",
+    "@nestjs/platform-express": "^11",
+    "reflect-metadata": "^0.2",
+    "rxjs": "^7"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11",
+    "@nestjs/schematics": "^11",
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

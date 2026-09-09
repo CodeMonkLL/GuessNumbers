@@ -1,6 +1,7 @@
 services:
 
   mysql_db:
+    container_name: guessnumbers-mysql_db
     image: mysql:8.4
     environment:
       MYSQL_ROOT_PASSWORD: guess-my-pw
@@ -17,11 +18,12 @@ services:
       start_period: 15s
     ports:
       - "3306:3306"
+    networks:
+      - app-network
 
-  app:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+  backend:
+    container_name: guessnumbers-backend
+    build: ./backend
     depends_on:
       mysql_db:
         condition: service_healthy
@@ -32,6 +34,24 @@ services:
       SECRET_KEY: localhost
     ports:
       - "5000:5000"
+    networks:
+      - app-network
+
+  frontend:
+    container_name: guessnumbers-frontend
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:5000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mysql-data:

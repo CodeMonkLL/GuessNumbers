@@ -3,7 +3,6 @@ import service.gameService as gameService
 from flask import Blueprint, jsonify, request
 from model.DTO.startRoundRequestDto import StartRoundRequestDto
 from model.DTO.playRoundRequestDto import PlayRoundRequestDto
-from model.DTO.sessionStatusRequestDto import SessionStatusRequesteDto
 from model.DTO.sessionStatusResponseDto import SessionStatusResponseDto
 from model.DTO.errors import (
     SessionNotFoundError,
