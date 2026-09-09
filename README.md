@@ -15,7 +15,7 @@ Drei Container in einem Compose-Netzwerk (`app-network`):
 ```
 mysql_db   MySQL, Schema und Testdaten aus db/init.sql
 backend    Flask-API auf Port 5000
-frontend   NestJS auf Port 3000
+frontend   Next.js auf Port 3000
 ```
 
 Swagger-UI: http://localhost:5000/apidocs
