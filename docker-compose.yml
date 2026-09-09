@@ -39,16 +39,16 @@ services:
 
   frontend:
     container_name: guessnumbers-frontend
-    build: ./frontend/guess-number
+    build: ./frontend/
     ports:
       - "3000:3000"
     environment:
       BACKEND_URL: http://backend:5000
       WATCHPACK_POLLING: "true"
     volumes:
-      - ./frontend/guess-number:/guess-number
-      - /guess-number/node_modules
-      - /guess-number/.next
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - backend
     networks:
