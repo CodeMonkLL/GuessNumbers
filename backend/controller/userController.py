@@ -30,13 +30,21 @@ def register_user():
               example: max_mustermann
     responses:
       201:
-        description: Benutzer wurde erfolgreich erstellt
+        description: Benutzer wurde erfolgreich erstellt und wird zurueckgegeben
         schema:
           type: object
+          required:
+            - id
+            - username
           properties:
-            message:
+            id:
+              type: integer
+              description: Eindeutige ID des angelegten Benutzers
+              example: 1
+            username:
               type: string
-              example: User created successfully
+              description: Benutzername des angelegten Benutzers
+              example: max_mustermann
       400:
         description: Ein Benutzer mit diesem Namen existiert bereits
         schema:
@@ -62,6 +70,9 @@ def register_user():
         return jsonify({"error": "User already exists"}), 400
 
     if isinstance(result, user.User):
-        return jsonify({"message": "User created successfully"}), 201
+      return jsonify({
+        "id": result.id,
+        "username": result.username
+      }), 201
 
     return jsonify({"error": "Internal server error"}), 500
