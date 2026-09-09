@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /guess-number
 
 COPY package*.json ./
 RUN npm install
