@@ -3,6 +3,10 @@ export type User = {
   username: string;
 };
 
+export type RegisterResponse = User & { recoveryCode: string };
+
+export type ResetPasswordResponse = { recoveryCode: string };
+
 export type StartRoundResponse = {
   userId: number;
   sessionId: number;
