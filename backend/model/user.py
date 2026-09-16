@@ -12,3 +12,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     username: Mapped[str] = mapped_column(String(255), unique=True)
+
+    passwordHash: Mapped[str] = mapped_column("password", String(255))
+
+    recoveryCodeHash: Mapped[str] = mapped_column("recoveryCode", String(255))

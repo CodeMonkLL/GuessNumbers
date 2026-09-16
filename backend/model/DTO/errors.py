@@ -7,5 +7,11 @@ class SessionMismatchError(Exception):
 class SessionAlreadyFinishedError(Exception):
     pass
 
-class UserAlreadyExsistError(Exception):
+class UserAlreadyExistError(Exception):
+    pass
+
+class InvalidRecoveryCodeError(Exception):
+    pass
+
+class InvalidCredentialsError(Exception):
     pass
