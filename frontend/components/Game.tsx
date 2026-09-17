@@ -1,12 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import type { PlayRoundResponse, User } from "@/lib/types";
 
 type Guess = {
   attemptNumber: number;
   responseMessage: string;
 };
+
+type Mood = "thinking" | "diagonalMouth" | "yawn" | "angry" | "smiley";
+
+const MOOD_ANIMATIONS: Record<Mood, string> = {
+  thinking: "/thinking.lottie",
+  diagonalMouth: "/diagonal_mouth.lottie",
+  yawn: "/yawn.lottie",
+  angry: "/angry.lottie",
+  smiley: "/smiley.lottie",
+};
+
+// Purely cosmetic mood indicator based on missed attempts -- the backend has
+// no attempt limit and the round keeps going regardless.
+function getMood(missedAttempts: number, won: boolean): Mood {
+  if (won) return "smiley";
+  if (missedAttempts >= 10) return "angry";
+  if (missedAttempts >= 3) return "yawn";
+  if (missedAttempts >= 1) return "diagonalMouth";
+  return "thinking";
+}
 
 export default function Game({
   user,
@@ -91,9 +112,14 @@ export default function Game({
     }
   }
 
+  const mood = getMood(guesses.length, won !== null);
+
   if (sessionId === null) {
     return (
       <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
+        <div className="h-24 w-24">
+          <DotLottieReact key={mood} src={MOOD_ANIMATIONS[mood]} loop autoplay />
+        </div>
         <p className="text-center text-black dark:text-zinc-50">
           Hi <span className="font-semibold">{user.username}</span>! Ready to guess a
           number between 1 and 100?
@@ -118,6 +144,9 @@ export default function Game({
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
+      <div className="h-24 w-24 self-center">
+        <DotLottieReact key={mood} src={MOOD_ANIMATIONS[mood]} loop autoplay />
+      </div>
       <p className="text-black dark:text-zinc-50">
         Playing as <span className="font-semibold">{user.username}</span>
       </p>

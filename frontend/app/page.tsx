@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Game from "@/components/Game";
 import HighScores from "@/components/HighScores";
-import UsernameForm from "@/components/UsernameForm";
+import AuthForm from "@/components/AuthForm";
 import type { User } from "@/lib/types";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const STORAGE_KEY = "guess-number.user";
 
@@ -27,7 +28,7 @@ export default function Home() {
     setReady(true);
   }, []);
 
-  function handleRegistered(newUser: User) {
+  function handleAuthenticated(newUser: User) {
     setUser(newUser);
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
@@ -46,11 +47,11 @@ export default function Home() {
   }
 
   return (
+  <>
     <div className="flex flex-1 flex-col items-center gap-8 bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
       <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
         🎱 Guess the Number
       </h1>
-
       {ready && (
         <>
           {user ? (
@@ -60,11 +61,12 @@ export default function Home() {
               onWin={() => setHighScoreRefreshKey((k) => k + 1)}
             />
           ) : (
-            <UsernameForm onRegistered={handleRegistered} />
+            <AuthForm onAuthenticated={handleAuthenticated} />
           )}
           <HighScores refreshKey={highScoreRefreshKey} />
         </>
       )}
     </div>
+  </>
   );
 }
