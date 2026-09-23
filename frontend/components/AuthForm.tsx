@@ -13,11 +13,11 @@ export default function AuthForm({
 }: {
   onAuthenticated: (user: User) => void;
 }) {
-  const [view, setView] = useState<View>("register");
+  const [view, setView] = useState<View>("login");
   // Remembers which view "Forgot password?" was opened from, so "Back"
   // returns there instead of always going to the register view.
   const [previousView, setPreviousView] = useState<"register" | "login">(
-    "register"
+    "login"
   );
   const [forgotUsername, setForgotUsername] = useState("");
 
