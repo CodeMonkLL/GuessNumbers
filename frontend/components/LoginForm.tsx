@@ -53,6 +53,7 @@ export default function LoginForm({
       onSubmit={handleSubmit}
       className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900"
     >
+      <h1 className="text-lg text-center font-bold">Login</h1>
       <div className="flex flex-col gap-1">
         <label
           htmlFor="login-username"

@@ -78,9 +78,7 @@ export default function ForgotPasswordForm({
       onSubmit={handleSubmit}
       className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900"
     >
-      <p className="text-sm font-medium text-black dark:text-zinc-50">
-        Reset password
-      </p>
+      <h1 className="text-lg text-center font-bold">Reset password</h1>
 
       <div className="flex flex-col gap-1">
         <label
