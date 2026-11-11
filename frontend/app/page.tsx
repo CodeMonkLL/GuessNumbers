@@ -5,7 +5,6 @@ import Game from "@/components/Game";
 import HighScores from "@/components/HighScores";
 import AuthForm from "@/components/AuthForm";
 import type { User } from "@/lib/types";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const STORAGE_KEY = "guess-number.user";
 
@@ -47,10 +46,9 @@ export default function Home() {
   }
 
   return (
-  <>
-    <div className="flex flex-1 flex-col items-center gap-8 bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
-      <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-        🎱 Guess the Number
+    <main className="flex flex-1 flex-col items-center gap-8 bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
+      <h1 className="text-center text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
+        <span aria-hidden="true">🎱 </span>Guess the Number
       </h1>
       {ready && (
         <>
@@ -66,7 +64,6 @@ export default function Home() {
           <HighScores refreshKey={highScoreRefreshKey} />
         </>
       )}
-    </div>
-  </>
+    </main>
   );
 }

@@ -1,6 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  cardClass,
+  errorClass,
+  hintClass,
+  inputClass,
+  labelClass,
+  linkButtonClass,
+  primaryButtonClass,
+} from "@/components/formStyles";
+
+type Field = "username" | "recoveryCode" | "newPassword";
+
+const FIELD_LABELS: Record<Field, string> = {
+  username: "Username",
+  recoveryCode: "Recovery code",
+  newPassword: "New password",
+};
 
 export default function ForgotPasswordForm({
   initialUsername = "",
@@ -13,14 +30,33 @@ export default function ForgotPasswordForm({
   const [recoveryCode, setRecoveryCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState<Record<Field, boolean>>({
+    username: false,
+    recoveryCode: false,
+    newPassword: false,
+  });
   const [newRecoveryCode, setNewRecoveryCode] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (newRecoveryCode) successHeadingRef.current?.focus();
+  }, [newRecoveryCode]);
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = username.trim();
-    if (!trimmed || !recoveryCode || !newPassword) {
-      setError("Please fill in all fields");
+    const missing: Record<Field, boolean> = {
+      username: !trimmed,
+      recoveryCode: !recoveryCode,
+      newPassword: !newPassword,
+    };
+    setInvalid(missing);
+    const missingNames = (Object.keys(missing) as Field[])
+      .filter((f) => missing[f])
+      .map((f) => FIELD_LABELS[f]);
+    if (missingNames.length > 0) {
+      setError(`Please fill in: ${missingNames.join(", ")}`);
       return;
     }
     setSubmitting(true);
@@ -52,39 +88,49 @@ export default function ForgotPasswordForm({
     }
   }
 
+  function describedBy(field: Field, extra?: string) {
+    const ids = [extra, invalid[field] ? "forgot-error" : undefined].filter(Boolean);
+    return ids.length ? ids.join(" ") : undefined;
+  }
+
   if (newRecoveryCode) {
     return (
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
+      <section aria-labelledby="forgot-success-heading" className={cardClass}>
+        <h2
+          id="forgot-success-heading"
+          ref={successHeadingRef}
+          tabIndex={-1}
+          className="text-lg text-center font-bold"
+        >
+          Password changed!
+        </h2>
         <p className="text-sm text-black dark:text-zinc-50">
-          Password changed! Your new recovery code (visible only now,
-          please write it down):
+          Your new recovery code (visible only now, please write it down):
         </p>
         <p className="rounded-lg bg-zinc-100 p-3 text-center font-mono text-lg font-semibold text-black dark:bg-zinc-800 dark:text-zinc-50">
           {newRecoveryCode}
         </p>
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-        >
+        <button type="button" onClick={onBack} className={primaryButtonClass}>
           Go to login
         </button>
-      </div>
+      </section>
     );
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900"
+      noValidate
+      aria-labelledby="forgot-heading"
+      aria-busy={submitting}
+      className={cardClass}
     >
-      <h1 className="text-lg text-center font-bold">Reset password</h1>
+      <h2 id="forgot-heading" className="text-lg text-center font-bold">
+        Reset password
+      </h2>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="forgot-username"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="forgot-username" className={labelClass}>
           Username
         </label>
         <input
@@ -92,17 +138,17 @@ export default function ForgotPasswordForm({
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="max_mustermann"
-          autoComplete="off"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          autoComplete="username"
+          required
+          aria-invalid={invalid.username}
+          aria-describedby={describedBy("username")}
+          className={inputClass}
           autoFocus
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="forgot-recovery-code"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="forgot-recovery-code" className={labelClass}>
           Recovery code
         </label>
         <input
@@ -110,15 +156,19 @@ export default function ForgotPasswordForm({
           value={recoveryCode}
           onChange={(e) => setRecoveryCode(e.target.value)}
           autoComplete="off"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          spellCheck={false}
+          required
+          aria-invalid={invalid.recoveryCode}
+          aria-describedby={describedBy("recoveryCode", "forgot-recovery-hint")}
+          className={inputClass}
         />
+        <p id="forgot-recovery-hint" className={hintClass}>
+          The code you were shown when you registered or last reset your password.
+        </p>
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="forgot-new-password"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="forgot-new-password" className={labelClass}>
           New password
         </label>
         <input
@@ -127,25 +177,22 @@ export default function ForgotPasswordForm({
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           autoComplete="new-password"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          required
+          aria-invalid={invalid.newPassword}
+          aria-describedby={describedBy("newPassword")}
+          className={inputClass}
         />
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      <p id="forgot-error" role="alert" className={errorClass}>
+        {error}
+      </p>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-      >
-        {submitting ? "…" : "Reset password"}
+      <button type="submit" disabled={submitting} className={primaryButtonClass}>
+        {submitting ? "Resetting…" : "Reset password"}
       </button>
 
-      <button
-        type="button"
-        onClick={onBack}
-        className="text-xs text-black/60 underline hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+      <button type="button" onClick={onBack} className={linkButtonClass}>
         Back
       </button>
     </form>

@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { useEffect, useRef, useState } from "react";
+import MoodAnimation from "@/components/MoodAnimation";
 import type { PlayRoundResponse, User } from "@/lib/types";
+import {
+  cardClass,
+  errorClass,
+  hintClass,
+  inputClass,
+  labelClass,
+  linkButtonClass,
+  primaryButtonClass,
+} from "@/components/formStyles";
 
 type Guess = {
   attemptNumber: number;
@@ -46,6 +55,13 @@ export default function Game({
   );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const winHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // The guess form is removed on a win; move focus to the result so keyboard
+  // and screen reader users land on it instead of on <body>.
+  useEffect(() => {
+    if (won) winHeadingRef.current?.focus();
+  }, [won]);
 
   async function startRound() {
     setLoading(true);
@@ -75,8 +91,13 @@ export default function Game({
     e.preventDefault();
     if (sessionId === null) return;
     const attemptNumber = Number(guessValue);
-    if (!Number.isInteger(attemptNumber) || attemptNumber < 1 || attemptNumber > 100) {
-      setError("Enter a whole number between 1 and 100");
+    if (
+      guessValue.trim() === "" ||
+      !Number.isInteger(attemptNumber) ||
+      attemptNumber < 1 ||
+      attemptNumber > 100
+    ) {
+      setError("Your guess must be a whole number between 1 and 100");
       return;
     }
     setLoading(true);
@@ -113,102 +134,126 @@ export default function Game({
   }
 
   const mood = getMood(guesses.length, won !== null);
+  const lastGuess = guesses[0];
 
   if (sessionId === null) {
     return (
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
-        <div className="h-24 w-24">
-          <DotLottieReact key={mood} src={MOOD_ANIMATIONS[mood]} loop autoplay />
-        </div>
+      <section aria-labelledby="game-heading" className={`items-center ${cardClass}`}>
+        <h2 id="game-heading" className="sr-only">
+          Game
+        </h2>
+        <MoodAnimation src={MOOD_ANIMATIONS[mood]} />
         <p className="text-center text-black dark:text-zinc-50">
           Hi <span className="font-semibold">{user.username}</span>! Ready to guess a
           number between 1 and 100?
         </p>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <button
-          onClick={startRound}
-          disabled={loading}
-          className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-        >
+        <p role="alert" className={errorClass}>
+          {error}
+        </p>
+        <button onClick={startRound} disabled={loading} className={primaryButtonClass}>
           {loading ? "Starting…" : "Start round"}
         </button>
-        <button
-          onClick={onSwitchUser}
-          className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-        >
+        <button onClick={onSwitchUser} className={linkButtonClass}>
           Not you? Switch user
         </button>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
-      <div className="h-24 w-24 self-center">
-        <DotLottieReact key={mood} src={MOOD_ANIMATIONS[mood]} loop autoplay />
-      </div>
+    <section aria-labelledby="game-heading" className={cardClass}>
+      <h2 id="game-heading" className="sr-only">
+        Game
+      </h2>
+      <MoodAnimation src={MOOD_ANIMATIONS[mood]} className="self-center" />
       <p className="text-black dark:text-zinc-50">
         Playing as <span className="font-semibold">{user.username}</span>
       </p>
 
+      {/* Announces each guess result to screen readers without moving focus. */}
+      <p role="status" className="sr-only">
+        {lastGuess && !won
+          ? `${lastGuess.attemptNumber}: ${lastGuess.responseMessage}`
+          : ""}
+      </p>
+
       {won ? (
         <div className="flex flex-col items-center gap-3 text-center">
-          <p className="text-lg font-semibold text-black dark:text-zinc-50">
-            🎉 You got it! The number was {won.winningNumber}.
-          </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <h3
+            ref={winHeadingRef}
+            tabIndex={-1}
+            className="text-lg font-semibold text-black dark:text-zinc-50"
+          >
+            <span aria-hidden="true">🎉 </span>You got it! The number was{" "}
+            {won.winningNumber}.
+          </h3>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {won.attempts} {won.attempts === 1 ? "attempt" : "attempts"}
           </p>
-          <button
-            onClick={startRound}
-            className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-          >
+          <button onClick={startRound} className={primaryButtonClass}>
             Play again
           </button>
         </div>
       ) : (
-        <form onSubmit={submitGuess} className="flex flex-col gap-3">
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={guessValue}
-            onChange={(e) => setGuessValue(e.target.value)}
-            placeholder="Your guess (1-100)"
-            className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
-            autoFocus
-          />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-          >
+        <form
+          onSubmit={submitGuess}
+          noValidate
+          aria-busy={loading}
+          className="flex flex-col gap-3"
+        >
+          <div className="flex flex-col gap-1">
+            <label htmlFor="guess-input" className={labelClass}>
+              Your guess
+            </label>
+            <input
+              id="guess-input"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={100}
+              value={guessValue}
+              onChange={(e) => setGuessValue(e.target.value)}
+              required
+              aria-invalid={error !== null}
+              aria-describedby={error ? "guess-hint guess-error" : "guess-hint"}
+              className={inputClass}
+              autoFocus
+            />
+            <p id="guess-hint" className={hintClass}>
+              A whole number from 1 to 100.
+            </p>
+          </div>
+          <p id="guess-error" role="alert" className={errorClass}>
+            {error}
+          </p>
+          <button type="submit" disabled={loading} className={primaryButtonClass}>
             {loading ? "Checking…" : "Guess"}
           </button>
         </form>
       )}
 
       {guesses.length > 0 && (
-        <ul className="flex flex-col gap-1 border-t border-black/10 pt-3 dark:border-white/10">
-          {guesses.map((g, i) => (
-            <li
-              key={i}
-              className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-400"
-            >
-              <span>{g.attemptNumber}</span>
-              <span>{g.responseMessage}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="border-t border-black/10 pt-3 dark:border-white/10">
+          <h3 id="guesses-heading" className="mb-2 text-sm font-semibold text-black dark:text-zinc-50">
+            Your guesses (newest first)
+          </h3>
+          <ul aria-labelledby="guesses-heading" className="flex flex-col gap-1">
+            {guesses.map((g, i) => (
+              <li
+                key={guesses.length - i}
+                className="flex items-center justify-between text-sm text-zinc-700 dark:text-zinc-300"
+              >
+                <span>{g.attemptNumber}</span>
+                <span>{g.responseMessage}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      <button
-        onClick={onSwitchUser}
-        className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+      <button onClick={onSwitchUser} className={linkButtonClass}>
         Not you? Switch user
       </button>
-    </div>
+    </section>
   );
 }

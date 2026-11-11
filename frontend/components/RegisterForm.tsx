@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "@/lib/types";
+import {
+  cardClass,
+  errorClass,
+  inputClass,
+  labelClass,
+  linkButtonClass,
+  primaryButtonClass,
+} from "@/components/formStyles";
 
 export default function RegisterForm({
   onRegistered,
@@ -15,6 +23,7 @@ export default function RegisterForm({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState({ username: false, password: false });
   const [submitting, setSubmitting] = useState(false);
 
   // After a successful registration, the recovery code is held here so it can be
@@ -22,12 +31,25 @@ export default function RegisterForm({
   // they get to see it in plain text.
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // The form disappears on success; move focus to the new content so keyboard
+  // and screen reader users aren't left on a removed element.
+  useEffect(() => {
+    if (recoveryCode) successHeadingRef.current?.focus();
+  }, [recoveryCode]);
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = username.trim();
-    if (!trimmed || !password) {
-      setError("Please enter a username and password");
+    const missing = { username: !trimmed, password: !password };
+    setInvalid(missing);
+    if (missing.username || missing.password) {
+      const names = [
+        missing.username && "Username",
+        missing.password && "Password",
+      ].filter(Boolean);
+      setError(`Please fill in: ${names.join(", ")}`);
       return;
     }
     setSubmitting(true);
@@ -59,10 +81,17 @@ export default function RegisterForm({
 
   if (recoveryCode && pendingUser) {
     return (
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
+      <section aria-labelledby="register-success-heading" className={cardClass}>
+        <h2
+          id="register-success-heading"
+          ref={successHeadingRef}
+          tabIndex={-1}
+          className="text-lg text-center font-bold"
+        >
+          Account created!
+        </h2>
         <p className="text-sm text-black dark:text-zinc-50">
-          Account created! Your recovery code (visible only now,
-          please write it down):
+          Your recovery code (visible only now, please write it down):
         </p>
         <p className="rounded-lg bg-zinc-100 p-3 text-center font-mono text-lg font-semibold text-black dark:bg-zinc-800 dark:text-zinc-50">
           {recoveryCode}
@@ -70,25 +99,27 @@ export default function RegisterForm({
         <button
           type="button"
           onClick={() => onRegistered(pendingUser)}
-          className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+          className={primaryButtonClass}
         >
           Continue playing
         </button>
-      </div>
+      </section>
     );
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900"
+      noValidate
+      aria-labelledby="register-heading"
+      aria-busy={submitting}
+      className={cardClass}
     >
-      <h1 className="text-lg text-center font-bold">Registration</h1>
+      <h2 id="register-heading" className="text-lg text-center font-bold">
+        Registration
+      </h2>
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="register-username"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="register-username" className={labelClass}>
           Username
         </label>
         <input
@@ -96,17 +127,17 @@ export default function RegisterForm({
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="max_mustermann"
-          autoComplete="off"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          autoComplete="username"
+          required
+          aria-invalid={invalid.username}
+          aria-describedby={invalid.username ? "register-error" : undefined}
+          className={inputClass}
           autoFocus
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="register-password"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="register-password" className={labelClass}>
           Password
         </label>
         <input
@@ -115,32 +146,29 @@ export default function RegisterForm({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          required
+          aria-invalid={invalid.password}
+          aria-describedby={invalid.password ? "register-error" : undefined}
+          className={inputClass}
         />
         <button
           type="button"
           onClick={() => onForgotPassword(username)}
-          className="self-start text-xs text-black/60 underline hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+          className={`self-start ${linkButtonClass}`}
         >
           Forgot password?
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      <p id="register-error" role="alert" className={errorClass}>
+        {error}
+      </p>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-      >
-        {submitting ? "…" : "Register"}
+      <button type="submit" disabled={submitting} className={primaryButtonClass}>
+        {submitting ? "Registering…" : "Register"}
       </button>
 
-      <button
-        type="button"
-        onClick={onSwitchToLogin}
-        className="text-xs text-black/60 underline hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+      <button type="button" onClick={onSwitchToLogin} className={linkButtonClass}>
         Already registered? Log in
       </button>
     </form>

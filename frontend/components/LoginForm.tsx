@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import type { User } from "@/lib/types";
+import {
+  cardClass,
+  errorClass,
+  inputClass,
+  labelClass,
+  linkButtonClass,
+  primaryButtonClass,
+} from "@/components/formStyles";
 
 export default function LoginForm({
   onLoggedIn,
@@ -15,13 +23,20 @@ export default function LoginForm({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState({ username: false, password: false });
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = username.trim();
-    if (!trimmed || !password) {
-      setError("Please enter a username and password");
+    const missing = { username: !trimmed, password: !password };
+    setInvalid(missing);
+    if (missing.username || missing.password) {
+      const names = [
+        missing.username && "Username",
+        missing.password && "Password",
+      ].filter(Boolean);
+      setError(`Please fill in: ${names.join(", ")}`);
       return;
     }
     setSubmitting(true);
@@ -51,14 +66,16 @@ export default function LoginForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-900"
+      noValidate
+      aria-labelledby="login-heading"
+      aria-busy={submitting}
+      className={cardClass}
     >
-      <h1 className="text-lg text-center font-bold">Login</h1>
+      <h2 id="login-heading" className="text-lg text-center font-bold">
+        Login
+      </h2>
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="login-username"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="login-username" className={labelClass}>
           Username
         </label>
         <input
@@ -66,17 +83,17 @@ export default function LoginForm({
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="max_mustermann"
-          autoComplete="off"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          autoComplete="username"
+          required
+          aria-invalid={invalid.username}
+          aria-describedby={invalid.username ? "login-error" : undefined}
+          className={inputClass}
           autoFocus
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="login-password"
-          className="text-sm font-medium text-black dark:text-zinc-50"
-        >
+        <label htmlFor="login-password" className={labelClass}>
           Password
         </label>
         <input
@@ -85,32 +102,29 @@ export default function LoginForm({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
-          className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-black outline-none focus:border-black/30 dark:border-white/15 dark:text-zinc-50 dark:focus:border-white/40"
+          required
+          aria-invalid={invalid.password}
+          aria-describedby={invalid.password ? "login-error" : undefined}
+          className={inputClass}
         />
         <button
           type="button"
           onClick={() => onForgotPassword(username)}
-          className="self-start text-xs text-black/60 underline hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+          className={`self-start ${linkButtonClass}`}
         >
           Forgot password?
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      <p id="login-error" role="alert" className={errorClass}>
+        {error}
+      </p>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-      >
-        {submitting ? "…" : "Login"}
+      <button type="submit" disabled={submitting} className={primaryButtonClass}>
+        {submitting ? "Logging in…" : "Login"}
       </button>
 
-      <button
-        type="button"
-        onClick={onSwitchToRegister}
-        className="text-xs text-black/60 underline hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+      <button type="button" onClick={onSwitchToRegister} className={linkButtonClass}>
         No account yet? Register
       </button>
     </form>
